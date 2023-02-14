@@ -17,14 +17,14 @@ class SplashServices {
           const Duration(
             seconds: 2,
           ),
-          () => Navigator.push(context,
+          () => Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => const HomeScreen())));
     } else {
       Timer(
           const Duration(
             seconds: 2,
           ),
-          () => Navigator.push(context,
+          () => Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => const LoginScreen())));
     }
   }

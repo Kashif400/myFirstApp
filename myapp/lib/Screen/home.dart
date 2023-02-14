@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/Screen/addNewRecord.dart';
 
@@ -13,6 +14,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  DatabaseReference studentRef =
+      FirebaseDatabase.instance.ref().child('Student');
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,7 +68,33 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Student Record'),
       ),
       body: Column(
-        children: [],
+        children: [
+          Expanded(
+            child: StreamBuilder(
+                stream: studentRef.onValue,
+                builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+                  if (!snapshot.hasData) {
+                    return CircularProgressIndicator();
+                  } else {
+                    Map<dynamic, dynamic> map =
+                        snapshot.data!.snapshot.value as dynamic;
+                    List<dynamic> list = [];
+                    list.clear();
+                    list = map.values.toList();
+
+                    return ListView.builder(
+                        itemCount: snapshot.data!.snapshot.children.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(list[index]['name']),
+                            subtitle: Text(list[index]['fatherName']),
+                            leading: CircleAvatar(child: Icon(Icons.person)),
+                          );
+                        });
+                  }
+                }), //builder, StreamBuilder
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

@@ -1,7 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:myapp/Screen/home.dart';
 import 'package:myapp/UI/roundButton.dart';
+import 'package:ndialog/ndialog.dart';
 
 class AddRecord extends StatefulWidget {
   const AddRecord({super.key});
@@ -12,10 +16,16 @@ class AddRecord extends StatefulWidget {
 
 class _AddRecordState extends State<AddRecord> {
   TextEditingController fatherName = TextEditingController();
-  TextEditingController userName = TextEditingController();
+  TextEditingController studentName = TextEditingController();
   TextEditingController department = TextEditingController();
   TextEditingController semester = TextEditingController();
   User? currentUser = FirebaseAuth.instance.currentUser;
+  FirebaseStorage fs = FirebaseStorage.instance;
+  List<String> imagUrl = [];
+  DatabaseReference studentRef =
+      FirebaseDatabase.instance.ref().child('Student');
+  late ProgressDialog progressDialog;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,16 +49,14 @@ class _AddRecordState extends State<AddRecord> {
                 height: 20,
               ),
               InkWell(
-                onTap: () {
-                  var _imagepicker = ImagePicker();
-                },
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   backgroundColor: Colors.grey,
                   child: Icon(
                     Icons.person_2_outlined,
                   ),
                   radius: 50,
                 ),
+                onTap: () async {},
               ),
               const SizedBox(
                 height: 30,
@@ -57,7 +65,7 @@ class _AddRecordState extends State<AddRecord> {
                   child: Column(
                 children: [
                   TextFormField(
-                    controller: userName,
+                    controller: studentName,
                     decoration: InputDecoration(
                         labelText: 'Name',
                         hintText: 'Enter your Name',
@@ -104,9 +112,40 @@ class _AddRecordState extends State<AddRecord> {
                   ),
                 ],
               )),
-              RoundButton(title: 'Save', onTap: () {}),
+              RoundButton(
+                  title: 'Save',
+                  onTap: () async {
+                    progressDialog = ProgressDialog(
+                      context,
+                      title: const Text('Save Record'),
+                      message: const Text('Please wait'),
+                    );
+                    String id =
+                        DateTime.now().millisecondsSinceEpoch.toString();
+
+                    try {
+                      progressDialog.show();
+                      await studentRef.child(id).set({
+                        'name': studentName.text,
+                        'fatherName': fatherName.text,
+                        'department': department.text,
+                        'semester': semester.text,
+                      });
+                      progressDialog.dismiss();
+                      Navigator.pushReplacement(context, MaterialPageRoute(
+                        builder: (context) {
+                          return HomeScreen();
+                        },
+                      ));
+                    } catch (e) {
+                      progressDialog.dismiss();
+                      Fluttertoast.showToast(msg: 'Error' + e.toString());
+                    }
+                  }),
             ]),
           ),
         ));
+
+    //
   }
 }
